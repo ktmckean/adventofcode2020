@@ -24,6 +24,7 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
 }
 
 fn main() {
+    doPart1();
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day6\\src\\input.txt");
 
     let mut sumOfNumAnswers = 0;
@@ -51,45 +52,37 @@ fn main() {
         }
 
         if line.is_empty(){
-            let mut numqs = 0;
-            for c in &answeredQs{
-                if c.1 == &groupSize{
-                    numqs+=1;
-                }
-            }
+            sumOfNumAnswers += getNumGroupCommonQs(&answeredQs, groupSize);
             answeredQs.clear();
             groupSize = 0;
-            sumOfNumAnswers += numqs;
         }
     }
 
     if !answeredQs.is_empty() && groupSize != 0{
-        let mut numqs = 0;
-        for c in &answeredQs{
-            if answeredQs[&c.0] == groupSize{
-                numqs+=1;
-            }
-        }
-        answeredQs.clear();
-        groupSize = 0;
-        sumOfNumAnswers += numqs;
+        sumOfNumAnswers += getNumGroupCommonQs(&answeredQs, groupSize);
     }
 
     println!("{}",sumOfNumAnswers);
 }
 
+
+fn getNumGroupCommonQs(answeredQs :&HashMap<char,i32>, groupSize:i32) -> i32{
+
+    let mut numqs = 0;
+    for c in answeredQs{
+        if answeredQs[&c.0] == groupSize{
+            numqs+=1;
+        }
+    }
+    return numqs
+}
+
 // fn getSharedAnswers(group : Vec::<HashSet<char>>) -> i32{
-//     let mut shared = HashMap::<char,i32>::new();
-//     for person in group{
-//         for c in person{
-//             if shared.contains_key(&c){
-//                 shared.entry(c).or_insert(0) += 1;
-//             } else{
-//                 shared[&c] = 1;
-//             }
-//         }
+//     let mut sharedqs: HashSet<char> = group[0];
+//     for person in &group{
+//         sharedqs = sharedqs.intersection(person).collect();
 //     }
-//     return 0;
+//     return sharedqs.len() as i32;
 // }
 
 fn doPart1(){
