@@ -67,23 +67,28 @@ fn main() {
 
 
 fn getNumGroupCommonQs(answeredQs :&HashMap<char,i32>, groupSize:i32) -> i32{
-
     let mut numqs = 0;
     for c in answeredQs{
-        if answeredQs[&c.0] == groupSize{
+        if *c.1 == groupSize{
             numqs+=1;
         }
     }
     return numqs
 }
 
-// fn getSharedAnswers(group : Vec::<HashSet<char>>) -> i32{
-//     let mut sharedqs: HashSet<char> = group[0];
-//     for person in &group{
-//         sharedqs = sharedqs.intersection(person).collect();
-//     }
-//     return sharedqs.len() as i32;
-// }
+fn getSharedAnswers(group : &Vec::<HashSet<char>>) -> i32{
+    let mut sharedqs = group[0];
+
+    let mut vec;
+    for person in group{
+        vec = (*person).collect();
+    }
+
+    for person in group{
+        sharedqs = sharedqs.intersection(person).collect();
+    }
+    return sharedqs.len() as i32;
+}
 
 fn doPart1(){
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day6\\src\\input.txt");
