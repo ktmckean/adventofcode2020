@@ -83,13 +83,13 @@ fn doPart1(code: &Vec::<(&str,i64)>){
 fn executeProgram(code :&Vec<(&str,i64)>) -> (i64,i64){
     let mut acc :i64 = 0;
     let mut i : i64 = 0;
-    let mut visited : HashSet<i64> = HashSet::new();
+    let mut visited = vec![false; code.len()];
     while i >= 0 && (i as usize) < code.len()  {
-        if visited.contains(&i){
+        if visited[i as usize]{
             // println!("Final acc: {}", acc);
             break;
         }
-        visited.insert(i);
+        visited[i as usize] = true;
 
         let ins = code[i as usize].0;
         let val = code[i as usize].1;
@@ -103,7 +103,6 @@ fn executeProgram(code :&Vec<(&str,i64)>) -> (i64,i64){
         }
         if ins == "nop"{
             i += 1;
-            continue;
         }
     }
     return (i, acc);
