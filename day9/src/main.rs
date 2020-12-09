@@ -3,8 +3,8 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::vec::Vec;
-use std::collections::HashSet;
-use std::collections::HashMap;
+// use std::collections::HashSet;
+// use std::collections::HashMap;
 
 fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
@@ -33,7 +33,7 @@ fn main() {
     // let preambleLen = 5;
     let preambleLen = 25;
     let p1 = doPart1(preambleLen, &nums);
-    let invDex:usize = p1.0;
+    // let invDex:usize = p1.0;
     let invNum:i64 = p1.1;
 
     doPart2(invNum, &nums);
@@ -47,7 +47,7 @@ fn doPart1(preambleLen: usize, nums: &Vec<i64>) -> (usize, i64){
             continue;
         }
         if !isPreambleSum(i, preambleLen, &nums){
-            println!("not a sum of preamble: {}", n);
+            println!("Part 1 answer: {}", n);
             invNum = *n;
             invDex = i;
             break;
@@ -60,36 +60,8 @@ fn doPart1(preambleLen: usize, nums: &Vec<i64>) -> (usize, i64){
 }
 
 fn doPart2(invNum: i64, nums: &Vec<i64>) {
-    let (mut s,mut e): (usize, usize) = (0,0);
-    for (i,n) in nums.iter().enumerate(){
-        let mut o = 1;
-        let mut isSum = false;
-
-        while !isSum{
-            let mut sum = 0;
-            for j in i .. i+o{
-                sum += nums[j];
-            }
-            if sum < invNum{
-                o += 1;
-            }
-            else if sum > invNum {
-                isSum = true;
-                // println!("not sum! i,o = {},{}",i,o);
-                break;
-            }
-            else{ // if sum == invNum
-                s = i;
-                e = i+o;
-                isSum = true;
-                break;
-            }
-        }
-        if (s,e) != (0,0){
-            break;
-        }
-    }
-
+    let (s, e) = findRangeContainingSum(invNum, &nums);
+    
     let mut min = std::i64::MAX;
     let mut max = 0;
     for n in &nums[s..e]{
@@ -101,6 +73,26 @@ fn doPart2(invNum: i64, nums: &Vec<i64>) {
         }
     } 
     println!("final sum:{}", min+max);
+}
+
+fn findRangeContainingSum(target: i64, nums: &Vec<i64>) -> (usize,usize){
+    let (mut s,mut e): (usize,usize) = (0,1);
+    loop {
+        let mut sum = 0;
+        for j in s .. e {
+            sum += nums[j];
+        }
+        if sum < target{
+            e += 1;
+        }
+        else if sum > target {
+            s += 1;
+        }
+        else{ // if sum == invNum
+            break;
+        }
+    }
+    (s,e)
 }
 
 // requires that i < preambleLen
