@@ -8,7 +8,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day3\\src\\input.txt").unwrap()
+        }
     };
     let reader = BufReader::new(file);
 
@@ -37,12 +41,14 @@ fn main() {
                 yincrememnt[inc.0]
         ));
     }
+    println!("Part1: {:?}",treesVec[1]);
+
 
     let mut product = 1;
     for num in treesVec{
         product *= num;
     }
-    println!("{}",product)
+    println!("Part2: {}",product)
 
 }
 
