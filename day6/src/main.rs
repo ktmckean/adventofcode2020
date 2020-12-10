@@ -10,8 +10,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
-    };
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day6\\src\\input.txt").unwrap()
+        }    };
     let reader = BufReader::new(file);
 
     let mut v : Vec<String> = Vec::new();
@@ -62,7 +65,7 @@ fn main() {
         sumOfNumAnswers += getNumGroupCommonQs(&answeredQs, groupSize);
     }
 
-    println!("{}",sumOfNumAnswers);
+    println!("Part2: {}",sumOfNumAnswers);
 }
 
 
@@ -76,19 +79,21 @@ fn getNumGroupCommonQs(answeredQs :&HashMap<char,i32>, groupSize:i32) -> i32{
     return numqs
 }
 
-fn getSharedAnswers(group : &Vec::<HashSet<char>>) -> i32{
-    let mut sharedqs = group[0];
+// fn getSharedAnswers(group : &Vec::<HashSet<char>>) -> i32{
+//     // This is how we copy the first set because HashSet has no copy
+//     // let mut sharedqs = group[0].union(&HashSet::<char>::new());
+//     let mut sharedqs = group[0].clone();
 
-    let mut vec;
-    for person in group{
-        vec = (*person).collect();
-    }
+//     let mut vec;
+//     for person in group{
+//         // vec = (*person).collect();
+//     }
 
-    for person in group{
-        sharedqs = sharedqs.intersection(person).collect();
-    }
-    return sharedqs.len() as i32;
-}
+//     for person in group{
+//         sharedqs = sharedqs.intersection(person).collect();
+//     }
+//     return sharedqs.len() as i32;
+// }
 
 fn doPart1(){
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day6\\src\\input.txt");
@@ -110,5 +115,5 @@ fn doPart1(){
         sumOfNumAnswers += answeredQs.len();
     }
 
-    println!("{}",sumOfNumAnswers);
+    println!("Part1: {}",sumOfNumAnswers);
 }
