@@ -10,8 +10,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
-    };
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day7\\src\\input.txt").unwrap()
+        }    };
     let reader = BufReader::new(file);
 
     let mut v : Vec<String> = Vec::new();
@@ -24,7 +27,7 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
 }
 
 fn main() {
-    // doPart1();
+    doPart1();
 
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day7\\src\\input.txt");
 
@@ -74,7 +77,7 @@ fn main() {
     //     addAllChildBags(&bag, &bags, &mut bagsCount);
     // }
 
-    println!("{}", bagsCount);
+    println!("Part 2: {}", bagsCount);
 
 }
 
@@ -99,7 +102,7 @@ fn doPart1(){
         let littleBags:Vec<&str> = bagsPair[1].split(",").collect();
 
         if littleBags[0].is_empty(){
-            println!("Skipped! {}",bigBag);
+            // println!("Skipped! {}",bigBag);
             continue;
         }
 
@@ -123,7 +126,7 @@ fn doPart1(){
         addAllParentBagsPart1(&bag, &bags, &mut topBags);
     }
 
-    println!("{}", topBags.len());
+    println!("Part1: {}", topBags.len());
 
 }
 
@@ -147,7 +150,7 @@ fn addAllChildBags(bag: &str, rules :&HashMap::<String,HashMap<String,i32>>) -> 
 fn addAllParentBagsPart1(bag: &str, rules :&HashMap::<String,HashSet<String>>, types: &mut HashSet<String>){
     types.insert(bag.to_string());
     if !rules.contains_key(bag){
-        println!("Bag not found in rules: {}",bag);
+        // println!("Bag not found in rules: {}",bag);
     } else{
         for parent in &rules[bag]{
             addAllParentBagsPart1(&parent, rules, types);
