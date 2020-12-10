@@ -9,7 +9,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day4\\src\\input.txt").unwrap()
+        }
     };
     let reader = BufReader::new(file);
 
@@ -34,45 +38,60 @@ static passFields : [&str; 8]= ["byr",
 fn main() {
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day4\\src\\input.txt");
 
+    let mut fields = HashMap::new();
+    let mut p1valid = 0;
+    // for pass in v.iter()
+    // {
+    //     if pass.is_empty()
+    //     {
+    //         // // part one //
+    //         if checkPassValidity(&fields){
+    //             p1valid += 1;
+    //         }
+    //     }
+    // }
 
 
     let mut valid = 0;
-    let mut fields = HashMap::new();
     let mut validPass = true;
     for pass in v.iter()
     {
         if pass.is_empty()
         {
             // // part one //
-            // if checkPassValidity(&fields)
+            if checkPassValidity(&fields){
+                p1valid += 1;
+            }
 
+            // part 2
             if checkPassValidFields(&fields)
             {
-                println!("valid:");
+                // println!("valid:");
                 valid += 1;
             }
-            println!("Resetting set...");
+            // println!("Resetting set...");
             fields.clear();
             fields = HashMap::new();
             continue;
         }
-        println!("line is {}",pass);
+        // println!("line is {}",pass);
         for field in pass.split(" ")
         {
             let keyVal = field.split(":").collect::<Vec<&str>>();
             fields.insert(keyVal[0].to_string(), keyVal[1].to_string());
         }
     }
-    // if checkPassValidity(&fields)
-    if checkPassValidFields(&fields)
-    {
-        println!("valid:");
-
+    if checkPassValidity(&fields){
+        p1valid += 1;
+    }
+    if checkPassValidFields(&fields){
+        // println!("valid:");
         valid += 1;
     }
 
 
-    println!("{}", valid)
+    println!("part1 {}", p1valid);
+    println!("part2 {}", valid);
 
 }
 
@@ -82,10 +101,10 @@ fn checkPassValidFields(fields: &HashMap<String,String>) -> bool{
             continue;
         }
         if !fields.contains_key(*field) || fields[*field].is_empty() {
-            println!("Invalid!  Pass does not contain field {}", field);
+            // println!("Invalid!  Pass does not contain field {}", field);
             return false;
         }
-        println!("validating {} : {}", field, &fields[*field]);
+        // println!("validating {} : {}", field, &fields[*field]);
         if !validateField(field, &fields[*field]){
             return false;
         }
@@ -165,10 +184,10 @@ fn validateField(key :&str, field :&String) -> bool {
                         
                         return false;}
                 }
-                println!("here1");
+                // println!("here1");
                 return true;
             }
-            println!("here2");
+            // println!("here2");
 
                 return false;
         },
