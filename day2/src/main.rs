@@ -9,7 +9,11 @@ fn main() {
     let file = File::open("C:\\Users\\Kerry\\coding\\aoc2020\\day2\\src\\input.txt");
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day2\\src\\input.txt").unwrap()
+        }
     };
     let reader = BufReader::new(file);
 
@@ -21,29 +25,33 @@ fn main() {
         v.push(line);
     }
 
-    let mut numTrue = 0;
-    let mut numFalse = 0;
+    let mut p1True = 0;
+    let mut p2True = 0;
 
     for line in v{
         let split = line.find('-').unwrap();
         let space = line.find(' ').unwrap();
-        let min = &line[0..split].parse::<usize>().unwrap();
-        let max = &line[split+1..space].parse::<usize>().unwrap();
+        let min = &line[0..split].parse::<i32>().unwrap();
+        let max = &line[split+1..space].parse::<i32>().unwrap();
         //  println!("{},{}",min, max);
         let c = &line[space+1..space+2];
         let pass = &line[space+4..];
 
-        // if checkPassValid(pass, c, min, max) {
-        if checkPassPart2(pass, c.chars().nth(0).unwrap(), *min, *max) {
-            numTrue += 1;
-        } else {
-            numFalse += 1;
+        if checkPassPart1(pass, c, min, max) {
+            p1True += 1;
+        }
+
+
+
+        if checkPassPart2(pass, c.chars().nth(0).unwrap(), *min as usize, *max as usize) {
+            p2True += 1;
         }
 
         // println!("{},{}",numFalse, numTrue);
 
     }
-    println!("{},{}",numFalse, numTrue);
+    println!("Part1: {}", p1True);
+    println!("Part2: {}", p2True);
 
 
 }
@@ -60,7 +68,7 @@ fn checkPassPart2(pass : &str, c: char, i1 : usize, i2 : usize) -> bool
      false
 }
 
-fn checkPassValid(pass : &str, c: &str, min : &i32, max : &i32) -> bool
+fn checkPassPart1(pass : &str, c: &str, min : &i32, max : &i32) -> bool
 {
     let mut count : i32 = 0;
     let mut checkpoint : usize = 0;
