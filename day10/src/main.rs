@@ -32,39 +32,29 @@ fn main() {
     nums.push(0);
     nums.sort();
     nums.push(nums[nums.len()-1]+3);
-    // println!("{:?}",nums);
 
-    let jolts :Vec::<i64> = getJoltages(&nums);
-    println!("{}", jolts[1] * jolts[3]);
-    println!("{:?}", jolts);
+    let jolts :Vec::<usize> = getJoltages(&nums);
+    println!("Part 1: {}", jolts[1] * jolts[3]);
+    assert!(jolts[1]*jolts[3] == 2450);
+    // println!("{:?}", jolts);
 
-    let lengths = getOnesLengths(&nums);
+
+    // Part 2
+    // Conveniently, we have no two-jolt intervals.  We will use this fact.
+    let lengths = getSections(&nums);
 
     // Sanity check:
     //  The # of 1-jolt intervals should equal sum of
     //  ( lengths[i]-1 )
-    //  because 
-    let mut nOneJolts:i64 = 0;
-    for l in &lengths{
-        nOneJolts += *l as i64 -1;
-    }
-    if nOneJolts != jolts[1]{
-        println!("lengths is wrong!");
-    }
+    testOneJoltsMatchLengths(&jolts, &lengths);
 
     let mut arrangements = 1;
     for length in lengths{
         arrangements *= numVarationsOnOnesLength(length);
     }
 
-    println!("{}",arrangements);
-
-    // Outside the ones lengths, there's no variation.  Therefore
-    // # possible arrangements = 
-    //  product of (
-    //      for each ones interval, the number of possibilities it has
-    //  )
-
+    println!("Part 2: {}",arrangements);
+    assert!(arrangements == 32396521357312);
 }
 
 // Looks for all sections of successive 1-jolt differences, and returns a vector containing
@@ -74,20 +64,21 @@ fn main() {
 //  0,3,4,5,8       = length 3 ; section is 3,4,5
 //  0,1,4,5,6,9,11  = 1x length 2 (0,1), and 1x length 3 (4,5,6)
 // The minimum possible length is 2, max is nums.len().
-fn getOnesLengths(nums: &Vec<i64>) -> Vec::<usize>
+fn getSections(nums: &Vec<i64>) -> Vec::<usize>
 {
     let mut lengths = Vec::<usize>::new();
     let mut prevNum = -10;
     let mut startIndex = 0;
-    let mut endIndex = 0;
+    let mut endIndex;
     let mut weAreInOnesSection = false;
     for (i,num) in nums.iter().enumerate(){
         let jolt = num-prevNum;
-        if jolt == 1 && !weAreInOnesSection {
+
+        if !weAreInOnesSection && jolt == 1 {
             startIndex = i-1;
             weAreInOnesSection = true;
         }
-        else if jolt != 1 && weAreInOnesSection {
+        else if weAreInOnesSection && jolt != 1 {
             weAreInOnesSection = false;
             endIndex = i;
             lengths.push(endIndex - startIndex);
@@ -99,17 +90,18 @@ fn getOnesLengths(nums: &Vec<i64>) -> Vec::<usize>
 
 
 fn numVarationsOnOnesLength(l: usize) -> i64{
-    let i = l-2;    // The internal length is really what we care about
+    // We can't omit the ends, because they already have a gap of three to
+    //  the next section.  They can't vary, so let's remove them from consideration.
+    let i = l-2;
     if i < 1{   
-        return 1;   // at minimum, there's 1 variation
+        return 1;   // at minimum, there's 1 "variation"
     }
     else{
         return numVariationsRec(i);
     }
-
 }
 
-// i = internal (and therefore switchable) size.
+// i = internal (and therefore switchable) size of the section.
 fn numVariationsRec(i: usize) -> i64{
     if i<4{
         match i{
@@ -119,16 +111,17 @@ fn numVariationsRec(i: usize) -> i64{
             _ => unreachable!(),
         }
     }
-    else{
-        return numVariationsRec(i-1)
-             + numVariationsRec(i-2)
-             + numVariationsRec(i-3);
+    // Could memoize this but it already runs instantly.
+    else{ 
+        return numVariationsRec(i-1)    // For including the first adapter
+             + numVariationsRec(i-2)    // For omitting the first and including the second adapter
+             + numVariationsRec(i-3);   // For omitting the first two but including the third
     }
 }
 
-fn getJoltages(nums: &Vec<i64>) -> Vec::<i64>
+fn getJoltages(nums: &Vec<i64>) -> Vec::<usize>
 {
-    let mut jolts : Vec::<i64> = [0,0,0,0].to_vec();
+    let mut jolts : Vec::<usize> = [0,0,0,0].to_vec();
 
     for i in 1..nums.len(){
         jolts[(nums[i] - nums[i-1]) as usize] += 1;
@@ -136,73 +129,14 @@ fn getJoltages(nums: &Vec<i64>) -> Vec::<i64>
     return jolts;
 }
 
-fn doPart1(preambleLen: usize, nums: &Vec<i64>) -> (usize, i64){
-    let mut invDex:usize = 0;
-    let mut invNum:i64 = 0;
-    for (i,n) in nums.iter().enumerate(){
-        if i < preambleLen{
-            continue;
-        }
-        if !isPreambleSum(i, preambleLen, &nums){
-            println!("Part 1 answer: {}", n);
-            invNum = *n;
-            invDex = i;
-            break;
-        }
-        else{
-            // println!("nope!");
-        }
+fn testOneJoltsMatchLengths(jolts: &Vec<usize>, lengths: &Vec<usize>)
+{
+    let mut nOneJolts:usize = 0;
+    for l in lengths{
+        nOneJolts += *l -1;
     }
-    (invDex, invNum)
-}
 
-fn doPart2(invNum: i64, nums: &Vec<i64>) {
-    let (s, e) = findRangeContainingSum(invNum, &nums);
-    
-    let mut min = std::i64::MAX;
-    let mut max = 0;
-    for n in &nums[s..e]{
-        if n < &min{
-            min = *n;
-        }
-        if n > &max{
-            max = *n;
-        }
-    } 
-    println!("final sum:{}", min+max);
-}
-
-fn findRangeContainingSum(target: i64, nums: &Vec<i64>) -> (usize,usize){
-    let (mut s,mut e): (usize,usize) = (0,1);
-    loop {
-        let mut sum = 0;
-        for j in s .. e {
-            sum += nums[j];
-        }
-        if sum < target{
-            e += 1;
-        }
-        else if sum > target {
-            s += 1;
-        }
-        else{ // if sum == invNum
-            break;
-        }
+    if nOneJolts != jolts[1]{
+        println!("lengths is wrong!");
     }
-    (s,e)
 }
-
-// requires that i < preambleLen
-fn isPreambleSum(i: usize, preambleLen: usize, nums: &Vec<i64>) -> bool{
-    // println!("ind:{}", i);
-
-    for a in 1..preambleLen+1{
-        for b in a+1..preambleLen+1{
-            if nums[i]==nums[i-a] + nums[i-b]{
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
