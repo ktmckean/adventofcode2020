@@ -9,7 +9,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day5\\src\\input.txt").unwrap()
+        }
     };
     let reader = BufReader::new(file);
 
@@ -36,14 +40,16 @@ fn main() {
         }
         seats.insert(getId(row,col));
     }
+    println!("Part 1:{}",maxid);
+
     for row in 0..128{
         for col in 0..8{
             if !seats.contains(&getId(row,col))
             && seats.contains(&getId(row,col+1))
             && seats.contains(&getId(row,col-1))
             {
-                println!("{},{}",row,col);
-                println!("{}",8*row+col)
+                // println!("{},{}",row,col);
+                println!("Part 2: {}",8*row+col)
             }
         }
     }
