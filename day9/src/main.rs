@@ -10,7 +10,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day9\\src\\input.txt").unwrap()
+        }
     };
     let reader = BufReader::new(file);
 
@@ -76,20 +80,23 @@ fn doPart2(invNum: i64, nums: &Vec<i64>) {
 }
 
 fn findRangeContainingSum(target: i64, nums: &Vec<i64>) -> (usize,usize){
-    let (mut s,mut e): (usize,usize) = (0,1);
+    let (mut s,mut e): (usize,usize) = (0,0);
+    let mut sum = 0;
     loop {
-        let mut sum = 0;
-        for j in s .. e {
-            sum += nums[j];
+        if sum == target{
+            break;
         }
-        if sum < target{
+        else if e >= nums.len(){
+            println!{"End bound exceeded! No contiguous range found"};
+            break;  
+        }
+        else if sum < target{
+            sum += nums[e];
             e += 1;
         }
         else if sum > target {
+            sum -= nums[s];
             s += 1;
-        }
-        else{ // if sum == invNum
-            break;
         }
     }
     (s,e)
