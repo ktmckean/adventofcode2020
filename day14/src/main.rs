@@ -10,7 +10,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day14\\src\\input.txt").unwrap()
+        }    
     };
     let reader = BufReader::new(file);
 
@@ -80,11 +84,11 @@ fn main() {
             
 
 
-            for addr in getFloatingValues(mask, *baseAddr){
-                println!("Writing to addr: {}", addr);
-                mem.insert(addr, val);
+            for addr in getFloatingValues(mask, *baseAddr).iter(){
+                // println!("Writing val {} to addr: {}", val, addr);
+                mem.insert(*addr, val);
             }
-            println!("Next command...");
+            // println!("Next command...");
 
 
             // insert the value
@@ -96,13 +100,16 @@ fn main() {
 
     let mut part2Answer = 0;
     for (addr,val) in mem{
+        // println!("Next command...");
+
         part2Answer += val;
     }
 
 
     // let numDigits = getNumBinaryDigits(baseAddr);
-    let maskSection = &mask[mask.len() ..];
+    // let maskSection = &mask[mask.len() ..];
     // println!("mask, section: {}, {}",mask, maskSection);
+    assert!(223971272746 < part2Answer);
     println!("Part 2: {}",part2Answer);
 
     // let vals = getFloatingValues(mask, 9);
@@ -114,7 +121,7 @@ fn main() {
 
 
 
-fn getFloatingValues(mask: &str, baseAddr: i64) ->HashSet<i64>{
+fn getFloatingValues(mask: &str, baseAddr: i64) ->Vec<i64>{
     let maskSection = &mask[mask.len() - getNumBinaryDigits(baseAddr) as usize ..];
 
     let mut minAddr = baseAddr;
@@ -122,7 +129,7 @@ fn getFloatingValues(mask: &str, baseAddr: i64) ->HashSet<i64>{
     let mut magnitude = 1;
     // println!("Starting with baseAddr {}...",baseAddr);
 
-    for (i,val) in maskSection.chars().rev().enumerate(){
+    for (i,val) in mask.chars().rev().enumerate(){
         if val == 'X' {
             factors.push(magnitude);
             // println!("Found X with binary value magnitude: {}", magnitude);
@@ -142,7 +149,7 @@ fn getFloatingValues(mask: &str, baseAddr: i64) ->HashSet<i64>{
     }
 
 
-    println!("Getting variations on {} with factors {:?}",minAddr, factors);
+    // println!("Getting variations on {} with factors {:?}",minAddr, factors);
     return getVariations(minAddr, &factors);
 }
 
@@ -165,41 +172,72 @@ fn getNumBinaryDigits(num: i64) -> i32{
     return digits;
 }
 
-// Assume that mask is a binary number except for the X's which are at indices tracked by positions
-fn getVariations(minAddr: i64, factors: &Vec::<i64>) -> HashSet::<i64>
+fn getVariations(minAddr: i64, factors: &Vec::<i64>) -> Vec::<i64>
 {
-    let mut set = HashSet::<i64>::new();
-    getVariationsRec(minAddr, factors, &mut set);
-    return set;
-}
 
-fn getVariationsRec(minAddr: i64, factors: &Vec::<i64>, set: &mut HashSet<i64>) -> HashSet::<i64>
-{
-    println!("factors rec: {:?}",factors);
-
-    let mut variations = HashSet::<i64>::new();
+    let mut variations = Vec::<i64>::new();
     if factors.len() == 0{
-        variations.insert(minAddr);
         return variations;
     }
+    // println!("minAddr, factors: {}, {:?}",minAddr,factors);
     if factors.len() == 1{
-        variations.insert(minAddr);
-        variations.insert(minAddr + factors[0]);
+        variations.push(minAddr);
+        variations.push(minAddr + factors[0]);
+        // println!("returning: {:?}",variations);
         return variations;
     }
 
 
-    for (i,factor) in factors.iter().enumerate(){
+    // for (i,factor) in factors[.. factors.len()-1].iter().enumerate(){
         // add all variations where this val is 0
-        getVariationsRec(minAddr, &factors[i+1..].to_vec(), set);
+    // println!("Doing all variations on {}, {:?}",minAddr, &factors[1..]);
+    variations.append(&mut getVariations(minAddr, &factors[1..].to_vec()));
 
-        // add all variatiosn where this val is 1
-        getVariationsRec(minAddr+factor, &factors[i+1..].to_vec(), set);
-    }
-    println!("returning: {:?}",variations);
+    // add all variatiosn where this val is 1
+    // println!("Doing all variations on {}, {:?}",minAddr+factors[0], &factors[1..]);
+    variations.append(&mut getVariations(minAddr+factors[0], &factors[1..].to_vec()));
+    // }
+    // println!("returning: {:?}",variations);
 
     return variations;
 }
+
+
+// // Assume that mask is a binary number except for the X's which are at indices tracked by positions
+// fn getVariations(minAddr: i64, factors: &Vec::<i64>) -> HashSet::<i64>
+// {
+//     let mut set = HashSet::<i64>::new();
+//     getVariationsRec(minAddr, factors, &mut set);
+//     return set;
+// }
+
+// fn getVariationsRec(minAddr: i64, factors: &Vec::<i64>, mut set: &mut HashSet<i64>) -> HashSet::<i64>
+// {
+//     println!("factors rec: {:?}",factors);
+
+//     let mut variations = HashSet::<i64>::new();
+//     if factors.len() == 0{
+//         variations.insert(minAddr);
+//         return variations;
+//     }
+//     if factors.len() == 1{
+//         variations.insert(minAddr);
+//         variations.insert(minAddr + factors[0]);
+//         return variations;
+//     }
+
+
+//     for (i,factor) in factors.iter().enumerate(){
+//         // add all variations where this val is 0
+//         getVariationsRec(minAddr, &factors[i+1..].to_vec(), &mut set);
+
+//         // add all variatiosn where this val is 1
+//         getVariationsRec(minAddr+factor, &factors[i+1..].to_vec(), &mut set);
+//     }
+//     println!("returning: {:?}",variations);
+
+//     return variations;
+// }
 
 fn getBinStrAsi64(s: &str) ->i64{
     let mut magnitude = 1;
