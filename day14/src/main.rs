@@ -78,50 +78,66 @@ fn main() {
         mask = op[0];
         for cmd in &op[1..]{
             let parts :Vec<&str>= cmd.split(' ').collect();
-            // let mut addrStr  = &parts[0][4 .. &parts[0].len()-1];
             let baseAddr  = &parts[0][4 .. &parts[0].len()-1].parse::<i64>().unwrap();
             let val = parts[2].parse::<i64>().unwrap();
             
-
-
-            for addr in getFloatingValues(mask, *baseAddr).iter(){
-                // println!("Writing val {} to addr: {}", val, addr);
+            for addr in getFloatingValuesOld(mask, *baseAddr).iter(){
                 mem.insert(*addr, val);
             }
-            // println!("Next command...");
-
-
-            // insert the value
-
-
-            // mem.insert(*addr, (val & getMaskWithXOne(mask)) | getMaskWithXZero(mask) );
+            
+            // // Cleaner version that doesn't work
+            // for mask in getAllMasks(mask){
+            //     mem.insert(baseAddr | mask, val);
+            // }
         }
     }
 
     let mut part2Answer = 0;
     for (_addr,val) in mem{
-        // println!("Next command...");
-
         part2Answer += val;
     }
 
-
-    // let numDigits = getNumBinaryDigits(baseAddr);
-    // let maskSection = &mask[mask.len() ..];
-    // println!("mask, section: {}, {}",mask, maskSection);
     assert!(223971272746 < part2Answer);
     println!("Part 2: {}",part2Answer);
-
-    // let vals = getFloatingValues(mask, 9);
-    // println!("26 mod 4: {}",26 % 4);
-
-    assert!(numHasBinaryDigit(26,2));
-
 }
 
+// // Cleaner version that doesn't work
+// fn getAllMasks(mask: &str) ->Vec<i64>{
+//     let mut bitMasks = Vec::<i64>::new();
+//     let mut magnitude = 1;
+//     // println!("Starting with baseAddr {}...",baseAddr);
 
+//     let mut onesMask = 0;
 
-fn getFloatingValues(mask: &str, baseAddr: i64) ->Vec<i64>{
+//     for val in mask.chars().rev(){
+//         if val == 'X' {
+//             bitMasks.push(magnitude);
+//             // println!("Found X with binary value magnitude: {}", magnitude);
+//         }
+//         else if val == '1'{
+//             onesMask += magnitude;
+//             // println!("Adding digit for {}'s place.  MinAddr is now {}",magnitude, minAddr);
+//         }
+//         magnitude *= 2;
+//     }
+    
+//     return getBitMasksRec(onesMask, &bitMasks);
+// }
+
+// fn getBitMasksRec(baseMask :i64, masks: &Vec<i64>) -> Vec<i64>{
+//     let mut addrs = Vec::<i64>::new();
+//     if masks.is_empty(){
+//         addrs.push(baseMask);
+//         return addrs;
+//     }
+    
+//     addrs.append(&mut getBitMasksRec(baseMask           , &masks[1..].to_vec()));
+//     addrs.append(&mut getBitMasksRec(baseMask & masks[0], &masks[1..].to_vec()));
+//     return addrs;
+// }
+
+// Deprecated; use GetFloatingAddresses instead
+fn getFloatingValuesOld(mask: &str, baseAddr: i64) ->Vec<i64>{
     let mut minAddr = baseAddr;
     let mut factors = Vec::<i64>::new();
     let mut magnitude = 1;
