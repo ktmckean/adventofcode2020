@@ -3,7 +3,7 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::vec::Vec;
-use std::collections::HashSet;
+// use std::collections::HashSet;
 use std::collections::HashMap;
 
 fn readLines(path :&str) -> std::vec::Vec<String>{
@@ -73,7 +73,7 @@ fn main() {
 
     let mut mem = HashMap::<i64,i64>::new();
 
-    let mut mask :&str = "";
+    let mut mask :&str;
     for op in ops{
         mask = op[0];
         for cmd in &op[1..]{
@@ -99,7 +99,7 @@ fn main() {
     }
 
     let mut part2Answer = 0;
-    for (addr,val) in mem{
+    for (_addr,val) in mem{
         // println!("Next command...");
 
         part2Answer += val;
@@ -122,14 +122,12 @@ fn main() {
 
 
 fn getFloatingValues(mask: &str, baseAddr: i64) ->Vec<i64>{
-    let maskSection = &mask[mask.len() - getNumBinaryDigits(baseAddr) as usize ..];
-
     let mut minAddr = baseAddr;
     let mut factors = Vec::<i64>::new();
     let mut magnitude = 1;
     // println!("Starting with baseAddr {}...",baseAddr);
 
-    for (i,val) in mask.chars().rev().enumerate(){
+    for val in mask.chars().rev(){
         if val == 'X' {
             factors.push(magnitude);
             // println!("Found X with binary value magnitude: {}", magnitude);
@@ -156,20 +154,6 @@ fn getFloatingValues(mask: &str, baseAddr: i64) ->Vec<i64>{
 fn numHasBinaryDigit(num:i64, digitsPlace:i64) -> bool{
     // println!("num({}) mod 2*digits({}): {}",num, digitsPlace, num % (2*digitsPlace));
     return num % (2*digitsPlace) >= digitsPlace;
-}
-
-
-
-fn getNumBinaryDigits(num: i64) -> i32{
-    let mut magnitude = 1;
-    let mut value = 0;
-    let mut digits = 0;
-    while value < num{
-        digits += 1;
-        value += magnitude;
-        magnitude *= 2;
-    }
-    return digits;
 }
 
 fn getVariations(minAddr: i64, factors: &Vec::<i64>) -> Vec::<i64>
@@ -202,61 +186,6 @@ fn getVariations(minAddr: i64, factors: &Vec::<i64>) -> Vec::<i64>
     return variations;
 }
 
-
-// // Assume that mask is a binary number except for the X's which are at indices tracked by positions
-// fn getVariations(minAddr: i64, factors: &Vec::<i64>) -> HashSet::<i64>
-// {
-//     let mut set = HashSet::<i64>::new();
-//     getVariationsRec(minAddr, factors, &mut set);
-//     return set;
-// }
-
-// fn getVariationsRec(minAddr: i64, factors: &Vec::<i64>, mut set: &mut HashSet<i64>) -> HashSet::<i64>
-// {
-//     println!("factors rec: {:?}",factors);
-
-//     let mut variations = HashSet::<i64>::new();
-//     if factors.len() == 0{
-//         variations.insert(minAddr);
-//         return variations;
-//     }
-//     if factors.len() == 1{
-//         variations.insert(minAddr);
-//         variations.insert(minAddr + factors[0]);
-//         return variations;
-//     }
-
-
-//     for (i,factor) in factors.iter().enumerate(){
-//         // add all variations where this val is 0
-//         getVariationsRec(minAddr, &factors[i+1..].to_vec(), &mut set);
-
-//         // add all variatiosn where this val is 1
-//         getVariationsRec(minAddr+factor, &factors[i+1..].to_vec(), &mut set);
-//     }
-//     println!("returning: {:?}",variations);
-
-//     return variations;
-// }
-
-fn getBinStrAsi64(s: &str) ->i64{
-    let mut magnitude = 1;
-    let mut value = 0;
-    for i in s.chars().rev(){
-        match i{
-            '1' => value += magnitude,
-            '0' => {},
-            _ => {
-                println!("unexpected value: {}",i);
-                unreachable!();
-            },
-        }
-        magnitude *= 2;
-    }
-    return value;
-
-}
-
 fn doPartOne(){
     
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day14\\src\\input.txt");
@@ -283,7 +212,7 @@ fn doPartOne(){
 
     let mut mem = HashMap::<i64,i64>::new();
 
-    let mut mask :&str = "";
+    let mut mask :&str;
     for op in ops{
         // println!("op: {:?}", op);
         mask = op[0];
@@ -300,7 +229,7 @@ fn doPartOne(){
     }
 
     let mut part1Answer = 0;
-    for (addr,val) in mem{
+    for (_addr,val) in mem{
         part1Answer += val;
     }
     println!("Part 1: {}",part1Answer);
