@@ -26,13 +26,16 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
 
 
 fn main() {
-    // doPartOne();
 
-    let _v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day15\\src\\input.txt");
+    // let _v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day15\\src\\input.txt");
 
     let turns = [0,1,4,13,15,12,16].to_vec();
+    // let turns = [7,12,1,0,16,2].to_vec();    // 2nd input
     // let turns :Vec<usize> = [0,3,6].to_vec();
     // let turns = [1,3,2].to_vec();
+
+    doPart1(&turns);
+
 
     let mut spoken = HashMap::<usize, (usize, usize)>::new();
     
@@ -45,24 +48,6 @@ fn main() {
 
 
     let mut lastTurn = turns[turns.len()-1];
-
-
-    // while i < 2021  {
-    //     let mut turn = 0;
-
-    //     if spoken[&lastTurn].1 != 0{
-    //         turn = spoken[&lastTurn].0 - spoken[&lastTurn].1;
-    //         // println!("Found previous turn of {}: changing turn to {}", lastTurn, turn);
-    //     }
-    //     addAndUpdate(&mut spoken, turn, i);
-
-    //     lastTurn = turn;
-    //     i+=1;
-    // }
-
-    // assert!(2018 != lastTurn);
-    // assert!(1665 == lastTurn);
-    // println!("Part 1: {}",lastTurn);
 
 
     let mut percentDone = 5;
@@ -84,6 +69,38 @@ fn main() {
     }
 
     println!("Part 2: {}",lastTurn);
+}
+
+fn doPart1(startTurns: &Vec<usize>, ){
+    let mut turns = startTurns.clone();
+    let mut spoken = HashMap::<usize, (usize, usize)>::new();
+    
+    let mut i = 1;
+    for num in &turns{
+        addAndUpdate(&mut spoken, *num, i);
+        i += 1;
+    }
+
+
+
+    let mut lastTurn = turns[turns.len()-1];
+    
+    while i < 2021  {
+        let mut turn = 0;
+
+        if spoken[&lastTurn].1 != 0{
+            turn = spoken[&lastTurn].0 - spoken[&lastTurn].1;
+            // println!("Found previous turn of {}: changing turn to {}", lastTurn, turn);
+        }
+        addAndUpdate(&mut spoken, turn, i);
+
+        lastTurn = turn;
+        i+=1;
+    }
+
+    // assert!(2018 != lastTurn);
+    // assert!(1665 == lastTurn);
+    println!("Part 1: {}",lastTurn);
 }
 
 fn addAndUpdate(map :&mut HashMap<usize, (usize, usize)>, key: usize, turn: usize){

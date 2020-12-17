@@ -10,8 +10,11 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
     let file = File::open(path);
     let file = match file {
         Ok(file) => file,
-        Err(error) => panic!("Problem opening the file: {:?}", error),
-    };
+        Err(error) => {
+            // Try the work computer's path
+            println!("Error: {},\nTrying work path...",error);
+            File::open("C:\\Repos\\adventofcode\\2020\\day11\\src\\input.txt").unwrap()
+        }    };
     let reader = BufReader::new(file);
 
     let mut v : Vec<String> = Vec::new();
@@ -47,7 +50,6 @@ fn main() {
     }
     updateUntilStatic(&mut grid, &CheckSeatType::Seen);
     let occupiedSeen = countTotalOccupied(&grid);
-    assert!(occupiedSeen==1978);    
     println!("Part 2: {}",occupiedSeen);
 }
 
