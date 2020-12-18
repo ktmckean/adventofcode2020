@@ -13,8 +13,8 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
         Err(error) => {
             // Try the work computer's path
             println!("Error: {},\nTrying work path...",error);
-            File::open("C:\\Repos\\adventofcode\\2020\\day17\\src\\input.txt").unwrap()
-        }    
+            File::open("C:\\Repos\\adventofcode\\2020\\day18\\src\\input.txt").unwrap()
+        }
     };
     let reader = BufReader::new(file);
 
@@ -32,7 +32,7 @@ fn main() {
 
     // let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day18\\src\\input.txt");
 
- 
+
     // println!("part 2: {}", numActive);
 
 }
@@ -40,111 +40,22 @@ fn main() {
 fn doPartOne(){
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day18\\src\\input.txt");
 
-    let expressions = Vec::<&str>::new();
-    
-    // let mut sum = 0;
-    // for line in &v{
-    //     sum += eval1(&line);
-    // }
-    // println!("part1: {}", sum);
+    let mut sum = 0;
+    for line in &v{
+        sum += eval(&line);
+    }
+    println!("part1: {}", sum);
 
     let mut sum2 = 0;
-    for line in &v{
-        sum2 += eval2(&line);
+    for line in &v {
+        let s = drawParentheses(&line);
+        sum2 += eval(&s);
     }
     println!("part2: {}", sum2);
+
 }
 
-fn eval2(exp: &str) -> i64{
-    let mut val = 0;
-    let mut nextOp = 'N';
-    let mut skipUntil = 0;
-    let mut multStack = Vec::<i64>::new();
-    let mut pendingMult = 1;
-
-    for (nth,c) in exp.chars().enumerate(){
-        if skipUntil != 0 {
-            if nth <= skipUntil{
-                continue;
-            }
-            skipUntil = 0;
-        }
-        println!("{}, {}, {}, {}, {}", val, nextOp, c, nth, skipUntil);
-
-        match c {
-            ' ' => continue,
-            '*' => nextOp = c,
-            '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0' =>{
-                if nextOp == 'N'{
-                    // multStack.push(c.to_digit(10).unwrap() as i64)
-                    val = c.to_digit(10).unwrap() as i64;
-                }
-                else if nextOp == '*'{
-                    multStack.push(c.to_digit(10).unwrap() as i64)
-                }
-            },
-            '+' => {
-                let (newVal, endSkip) = evalPlusGroup(&exp, nth-2, val);
-                println!("plus group finished with value: {}", newVal);
-                val = newVal;
-                skipUntil = endSkip;
-            },
-            ')' => {
-                while !multStack.is_empty(){
-                    val *= multStack.pop().unwrap();
-                }
-            }
-            '(' => {
-                let (newVal,endGroup) = evalGroup2(&exp, nth);
-                val = applyOp(val, newVal, nextOp);
-                skipUntil = nth+1+endGroup;
-            },
-            _ => unreachable!(),
-        };
-    }
-    while !multStack.is_empty(){
-        println!("popping stack: {} --> val becomes {}", multStack.last().unwrap(), val * multStack.last().unwrap());
-        val *= multStack.pop().unwrap();
-    }
-    return val;
-}
-
-// Starts with some number before a plus, with index pointing to what is to be added
-fn evalPlusGroup(exp: &str, i: usize, startVal: i64) -> (i64,usize){
-    println!("Evaluating plus group: {}",&exp[i..]);
-    let mut skipUntil = 0;
-    let mut val = startVal;
-    
-    for (nth,c) in exp[i..].chars().enumerate() {
-        if skipUntil != 0 {
-            if nth <= skipUntil{
-                continue;
-            }
-            skipUntil = 0;
-        }
-        println!("{}, {}, _, {}, {} ", val, c, nth, skipUntil);
-
-        match c{
-            ' '|')'|'+' => continue,
-            '*' => return (val, i+nth-1),
-            '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0' =>
-            {
-                println!("Adding {}", c);
-                val += c.to_digit(10).unwrap() as i64
-            },
-            '(' => {
-                let (newVal,endGroup) = evalGroup2(&exp, i+nth);
-                val = applyOp(val, newVal, '+');
-                skipUntil += nth+1+endGroup;
-            },
-            _ => unreachable!(),
-        };
-    }
-
-    return (val, exp.len()-1);
-}
-
-fn eval1(exp: &str) -> i64{
+fn eval(exp: &str) -> i64{
     let mut val = 0;
     let mut nextOp = 'N';
     let mut skipUntil = 0;
@@ -187,41 +98,91 @@ fn applyOp (val: i64, newVal: i64, op: char) -> i64{
     };
 }
 
-fn evalGroup2(exp: &str, mut i: usize) -> (i64, usize)
+fn drawParentheses(exp: &str) -> String
 {
-    let group: &str;
-    let mut nest = 1;
-    let groupSize:usize;
-    let mut endGroup = 0;
-    
-    // println!("scanning {}",&exp[i+1..]);
-    for (i,c) in exp[i+1..].chars().enumerate() {
-        match c {
-            '(' => nest += 1,
-            ')' => nest -= 1,
-            _ => continue,
-        }
-        if nest == 0 {
-            endGroup = i;
+    let mut lastIndex:usize = 2;
+    let mut expStr = String::from(exp);
+    // println!("Drawing...");
+    // println!("{}", expStr);
+
+    loop {
+        let nextPlus = expStr[lastIndex ..].find('+');
+
+        if nextPlus.is_none(){
             break;
         }
+        else{
+            makePlusGroup(&mut expStr, lastIndex + nextPlus.unwrap());
+            lastIndex += nextPlus.unwrap() + 2; // +2 because we added a '(' and want to start after it
+            // println!("{}", expStr);
+        }
     }
-    assert!(endGroup != 0);
-    group = &exp[i+1 .. i+1+endGroup];
-    println!("Group: {}", group);
-    println!("Group evaluated to {}",eval2(&group));
+    return expStr;
+}
 
-    return (eval2(&group), endGroup);
-} 
+fn makePlusGroup(exp: &mut String, i:usize){
+    let start = getLeftGroupStart(exp, i);
+    exp.insert(start, '(');
+
+    let end = getRightGroupEnd(exp, i+1);
+    exp.insert(end, ')');
+}
+
+fn getRightGroupEnd(exp:&str, i:usize) -> usize
+{
+    // println!("getting right from: {}", exp.chars().nth(i+2).unwrap());
+    if  exp.chars().nth(i+2).unwrap() != '(' {
+        return i+3;
+    }
+
+    else{
+        let mut nest = 0;
+        let mut j = i+2;
+        while j < exp.len(){
+            match exp.chars().nth(j).unwrap(){
+                '(' => nest += 1,
+                ')' => nest -= 1,
+                _ => {},
+            }
+            if nest == 0{
+                return j;
+            }
+            j += 1;
+        }
+        return 0;
+    }
+}
+
+fn getLeftGroupStart(exp:&str, i:usize) -> usize{
+    if  exp.chars().nth(i-2).unwrap() != ')' {
+        return i-2;
+    }
+
+    else{
+        let mut nest = 1;
+        let mut j = i-2;
+        while j > 0{
+            j -= 1;
+            match exp.chars().nth(j).unwrap(){
+                ')' => nest += 1,
+                '(' => nest -= 1,
+                _ => {},
+            }
+            if nest == 0{
+                return j;
+            }
+        }
+        return 0;
+    }
+}
 
 fn evalGroup(exp: &str, i: usize) -> (i64, usize)
 {
     let group: &str;
     let mut nest = 1;
-    let groupSize:usize;
     let mut endGroup = 0;
-    
-    println!("scanning {}",&exp[i+1..]);
+
+    // println!("scanning {}",&exp[i+1..]);
     for (i,c) in exp[i+1..].chars().enumerate() {
         match c {
             '(' => nest += 1,
@@ -238,5 +199,5 @@ fn evalGroup(exp: &str, i: usize) -> (i64, usize)
     // println!("Group: {}", group);
     // println!("Group evaluated to {}",eval1(&group));
 
-    return (eval1(&group), endGroup);
-} 
+    return (eval(&group), endGroup);
+}
