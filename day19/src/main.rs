@@ -30,14 +30,9 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
 
 
 fn main() {
+    // let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day18\\src\\input.txt");
     doPartOne();
     doPartTwo();
-
-    // let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day18\\src\\input.txt");
-
- 
-    // println!("part 2: {}", numActive);
-
 }
 
 static mut END_RULES: [(usize, char); 2] = [(0,'a'),(0,'a')];
@@ -57,8 +52,8 @@ fn doPartOne(){
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day19\\src\\input.txt");
 
     let rulesVec = scanAllRules(&v);
+    let numMatches = countNumValidRules(&v,&rulesVec);
 
-    let mut numMatches = countNumValidRules(&v,&rulesVec);
     println!("Part 1: {}", numMatches);
 }
 
@@ -82,25 +77,28 @@ fn countNumValidRules(v: &std::vec::Vec<String>, rulesVec: &Vec<Vec<Vec<usize>>>
 
 
 fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
+    let rulesVecSize = getLargestRule(&v)+1;
+    let mut rulesVec = Vec::<Vec<Vec<usize>>>::with_capacity(rulesVecSize);
+    rulesVec.resize(rulesVecSize, Vec::<Vec<usize>>::new());
+
+    
     let numRules = getNumRules(&v);
-    let mut rulesVec = Vec::<Vec<Vec<usize>>>::with_capacity(numRules);
-    rulesVec.resize(numRules, Vec::<Vec<usize>>::new());
-
     let mut scannedEndRules = Vec::<(usize, char)>::new();
-
-
     for line in &v[.. numRules]{
         let parts = line.split(": ").collect::<Vec<&str>>();
 
 
         let ruleNum = parts[0].parse::<usize>().unwrap();
+        assert!(ruleNum < rulesVecSize);
 
+        // If we are an end rule:
         if parts[1].contains("\""){
             let charVal = parts[1].chars().nth(parts[1].len() - 2).unwrap();
             scannedEndRules.push((ruleNum, charVal));
 
             rulesVec[ruleNum] = Vec::<Vec<usize>>::new();   // We will have to check around this placeholder
         }
+        // if we are not an end rule:
         else {
             let mut ruleSets = Vec::<Vec<usize>>::new();
 
@@ -135,80 +133,30 @@ fn set_END_RULES(newRules: &Vec<(usize, char)>)
     }
 }
 
+fn getLargestRule(v: &Vec<String>) -> usize{
+    let mut maxNum = 0;
+    for line in v {
+        if line.is_empty(){
+            break;
+        }
+        let num = line.split(": ")
+                      .collect::<Vec<&str>>()
+                      [0].parse::<usize>()
+                      .unwrap();
+        if num > maxNum{
+            maxNum = num;
+        }
+    }
+    return maxNum;
+}
+
 fn getNumRules(v: &Vec<String>) -> usize{
-    for (i,line) in v.iter().enumerate(){
+    for (i,line) in v.iter().enumerate() {
         if line.is_empty(){
             return i;
         }
     }
     return v.len();
-}
-
-
-// fn testNextRuleValid(){
-//     // assert!(nextRuleMetValid("ab", 0, ))
-// }
-
-fn nextRuleMetValid(s: &str, i: &mut usize, thisRuleIdx: usize, rules: &Vec<Vec<Vec<usize>>>) -> bool
-{
-    // println!("checking rule {} : {:?}", thisRuleIdx, &rules[thisRuleIdx]);
-    if *i >= s.len() {return false;}
-    if isEndRule(&thisRuleIdx){
-        // *i += 1;
-        return s.chars().nth(*i).unwrap() == getRuleChar(&thisRuleIdx);
-    }
-
-
-
-    
-    // let thisRule = rules[ruleNum];
-    // RuleSet is a vector of vector of ruleNums
-    let mut setValid = true;
-    for ruleSet in &rules[thisRuleIdx]
-    {
-        setValid = true;
-        // Rule Set is a vector of ruleNums
-        for (j,ruleNum) in ruleSet.iter().enumerate(){
-            println!("{}, {}, checking ruleNum {:?}", *i+j, s.chars().nth(*i+j).unwrap(), ruleNum);
-
-            if isEndRule(&ruleNum){
-                if s.chars().nth(*i+j).unwrap() == getRuleChar(&ruleNum){
-                    // *i += 1;
-                    continue;
-                }
-                else{
-                    // *i += 1;
-                    setValid = false;
-                    // println!("Nope!");
-                    break;
-                }
-            }
-            else{
-                // println!("about to check ruleNum {}", ruleNum);
-                *i += 1;
-                let nextValid = nextRuleMetValid(s, i, *ruleNum, rules);
-
-                if !nextValid{
-                    *i -= 1;
-                    setValid = false;
-                    break;
-                }
-                else{
-                    // *i += 1;
-                    // println!("success! i is now {}", *i);
-                }
-            }
-        }
-        if setValid{
-            // println!("valid ruleset update pre:  {}", *i);
-            *i += ruleSet.len();
-            // println!("valid ruleset update post: {}", *i);
-            // println!("ruleset {}, {:?} was vaild!", thisRuleIdx, ruleSet);
-            return true;
-        }
-    }
-    // println!("rule {}, {:?} was not valid", thisRuleIdx, rules[thisRuleIdx]);
-    return false;
 }
 
 //  Assumes ruleNum is not end rule
