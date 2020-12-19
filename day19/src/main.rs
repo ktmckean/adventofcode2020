@@ -29,11 +29,9 @@ fn readLines(path :&str) -> std::vec::Vec<String>{
 }
 
 
-
-// impl new for Rule
-
 fn main() {
     doPartOne();
+    doPartTwo();
 
     // let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day18\\src\\input.txt");
 
@@ -42,14 +40,53 @@ fn main() {
 
 }
 
+static mut END_RULES: [(usize, char); 2] = [(0,'a'),(0,'a')];
+
+
+
+fn doPartTwo(){
+    let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day19\\src\\input2.txt");
+
+    let rulesVec = scanAllRules(&v);
+
+    // let mut numMatches = countNumValidRules(&v,&rulesVec);
+    // println!("Part 2: {}", numMatches);
+}
+
 fn doPartOne(){
     let v = readLines("C:\\Users\\Kerry\\coding\\aoc2020\\day19\\src\\input.txt");
 
+    let rulesVec = scanAllRules(&v);
 
-    let numRules = 131;
-    let mut rulesVec = Vec::<Vec<Vec<usize>>>::with_capacity(131);
+    let mut numMatches = countNumValidRules(&v,&rulesVec);
+    println!("Part 1: {}", numMatches);
+}
+
+fn countNumValidRules(v: &std::vec::Vec<String>, rulesVec: &Vec<Vec<Vec<usize>>>) -> usize{
+    let numRules = rulesVec.len();
+    let mut numMatches = 0;
+    for line in &v[numRules+1 ..] {
+        // println!("{}",line);
+
+        // let mut j = 0;
+        // let matched = nextRuleMetValid(line, &mut j, 0, &rulesVec);
+        let matched = checkRule0(line,&rulesVec);
+        // let matched = checkRule(line, &mut j, &rulesVec, 0);
+        // println!("{}", matched);
+        if matched{
+            numMatches += 1;
+        }
+    }
+    return numMatches;
+}
+
+
+fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
+    let numRules = getNumRules(&v);
+    let mut rulesVec = Vec::<Vec<Vec<usize>>>::with_capacity(numRules);
     rulesVec.resize(numRules, Vec::<Vec<usize>>::new());
-    // let mut endRules
+
+    let mut scannedEndRules = Vec::<(usize, char)>::new();
 
 
     for line in &v[.. numRules]{
@@ -58,9 +95,11 @@ fn doPartOne(){
 
         let ruleNum = parts[0].parse::<usize>().unwrap();
 
-        
-        if isEndRule(&ruleNum){
-            rulesVec[ruleNum] = Vec::<Vec<usize>>::new();
+        if parts[1].contains("\""){
+            let charVal = parts[1].chars().nth(parts[1].len() - 2).unwrap();
+            scannedEndRules.push((ruleNum, charVal));
+
+            rulesVec[ruleNum] = Vec::<Vec<usize>>::new();   // We will have to check around this placeholder
         }
         else {
             let mut ruleSets = Vec::<Vec<usize>>::new();
@@ -80,68 +119,30 @@ fn doPartOne(){
         }
     }
 
-
-    let mut numMatches = 0;
-    for line in &v[numRules+1 ..] {
-        // println!("{}",line);
-
-        // let mut j = 0;
-        // let matched = nextRuleMetValid(line, &mut j, 0, &rulesVec);
-        let matched = checkRule0(line,&rulesVec);
-        // let matched = checkRule(line, &mut j, &rulesVec, 0);
-        // println!("{}", matched);
-        if matched{
-            numMatches += 1;
-        }
-
-    }
-        println!("{}", numMatches);
-   
-
-
-
-
-
-    
-
+    set_END_RULES(&scannedEndRules);
+    return rulesVec
 }
 
-// fn scanAllRules() -> Vec<Vec<Vec<usize>>>{
-//     let numRules = 131;
-//     let mut rulesVec = Vec::<Vec<Vec<usize>>>::with_capacity(131);
-//     rulesVec.resize(numRules, Vec::<Vec<usize>>::new());
-//     // let mut endRules
+fn set_END_RULES(newRules: &Vec<(usize, char)>)
+{
+    unsafe{
+        assert!(newRules.len() == END_RULES.len());
 
+        for (i,val) in newRules.iter().enumerate(){
+            assert!(i<END_RULES.len());
+            END_RULES[i] = *val;
+        }
+    }
+}
 
-//     for line in &v[.. numRules]{
-//         let parts = line.split(": ").collect::<Vec<&str>>();
-
-
-//         let ruleNum = parts[0].parse::<usize>().unwrap();
-
-        
-//         if isEndRule(&ruleNum){
-//             rulesVec[ruleNum] = Vec::<Vec<usize>>::new();
-//         }
-//         else {
-//             let mut ruleSets = Vec::<Vec<usize>>::new();
-
-//             for ruleSet in parts[1].split("|").collect::<Vec<&str>>(){
-//                 let mut rules = Vec::<usize>::new();
-
-//                 for rule in ruleSet.split(" ").collect::<Vec<&str>>(){
-//                     let parseRule = rule.parse::<usize>();
-//                     if !parseRule.is_err(){
-//                         rules.push(parseRule.unwrap());                
-//                     }
-//                 }
-//                 ruleSets.push(rules)
-//             }
-//             rulesVec[ruleNum] = ruleSets;
-//         }
-//     }
-//     return rulesVec
-// }
+fn getNumRules(v: &Vec<String>) -> usize{
+    for (i,line) in v.iter().enumerate(){
+        if line.is_empty(){
+            return i;
+        }
+    }
+    return v.len();
+}
 
 
 // fn testNextRuleValid(){
@@ -268,7 +269,15 @@ fn checkRule0(s: &str, rules: &Vec<Vec<Vec<usize>>>) -> bool
 }
 
 fn isEndRule(num: &usize) -> bool {
-    return *num == 77 || *num==91;
+    unsafe {
+        for pair in END_RULES.iter(){
+            if *num == pair.0{
+                return true;
+            }
+        }
+    }
+    return false;
+    // return *num == 77 || *num==91;
 }
 
 // fn isEndRule(num: &usize) -> bool {
@@ -276,11 +285,19 @@ fn isEndRule(num: &usize) -> bool {
 // }
 
 fn getRuleChar(num: &usize) -> char{
-    return match *num{
-        91 => 'b',
-        77 => 'a',
-        _ => unreachable!(),
-    };
+    unsafe {
+        for pair in END_RULES.iter(){
+            if *num == pair.0{
+                return pair.1
+            }
+        }
+        unreachable!();
+    }
+    // return match *num{
+    //     91 => 'b',
+    //     77 => 'a',
+    //     _ => unreachable!(),
+    // };
 }
 
 // fn getRuleChar(num: &usize) -> char{
