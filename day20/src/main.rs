@@ -98,9 +98,22 @@ fn createImage(tiles: &HashMap<usize, Tile>, ) -> Tile {
 
 fn placeTiles(mut tiles: &mut HashMap<usize, Tile>) -> Vec<Vec<Tile>> {    
     let edgeNums = getEdgeNums(&tiles);
-    let mut grid = initializeGrid(&mut tiles, &edgeNums);
+    let mut grid = generateSquareGrid();    // Already sized and indexable
 
-    placeBorders(&mut tiles, &edgeNums, &mut grid);
+    // let mut grid = initializeGrid(&mut tiles, &edgeNums);
+
+    placeTopRow(&mut tiles, &edgeNums, &mut grid);
+
+    // let mut edgePieces = getSingleEdgePieces(tiles, &edgeNums);
+    // let mut corners = getCornerPieces(tiles, &edgeNums);
+    // assert!(corners.len() == 2);
+    // assert!(edgePieces.len() == 30);
+
+    // println!("{:?}",grid);
+
+    for row in 1 .. 2{
+        placeRowMatchingTop(&mut tiles, &mut grid, row, &edgeNums);
+    }
 
 
     // println!("{:?}", grid);
@@ -112,128 +125,217 @@ fn placeTiles(mut tiles: &mut HashMap<usize, Tile>) -> Vec<Vec<Tile>> {
     return grid;
 }
 
-// fn fillGrid(mut tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge, usize>, mut grid: &mut Vec<Vec<Tile>>) -> Vec<Vec<Tile>> {
-
-// }
-
-fn placeBorders(mut tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge, usize>, mut grid: &mut Vec<Vec<Tile>>) {
-    let mut edgePieces = getSingleEdgePieces(tiles, edgeNums);
-    let mut corners = getCornerPieces(tiles, edgeNums);
-
-    // TOP
-    placeRowInterior(&mut edgePieces, &mut grid);
-    // for i in 1 .. grid[0].len()-1 {
-    //     // println!("{:?}", getEdges(&grid[0][i]));
-    //     // // println!("{:?}", grid[0]);
-    //     // println!("{}",i);
-    //     println!("{:?}",&grid[0][i-1]);
-    //     let edgeToMatch = &getEdges(&grid[0][i-1])[3];
-    //     let mut matchedNum = 0;
-        
-    //     for mut piece in &mut edgePieces{
-    //         let mut pieceEdges = getEdges(&piece.1);
-            
-    //         let edgeNum = 0;
-    //         for (j, mut edge) in pieceEdges.iter().enumerate() {
-    //             if *edge == *edgeToMatch{
-    //                 flipAndRotatePiece(&mut piece.1, 5-j, false, false);
-    //                 grid[0][i] = (*piece.1).clone();
-    //                 matchedNum = *piece.0;
-    //                 break;
-    //             }
-    //             else {
-    //                 let mut rev = edge.clone();
-
-    //                 if rev == *edgeToMatch{
-    //                     rev.reverse();
-    //                     flipAndRotatePiece(&mut piece.1, 5-j, true, false);
-    //                     grid[0][i] = (*piece.1).clone();
-    //                     matchedNum = *piece.0;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-
-    //         if matchedNum != 0 {
-    //             break;                
-    //         }
-    //     }
-    //     if matchedNum != 0 {
-    //         edgePieces.remove(&matchedNum);
-    //         tiles.remove(&matchedNum);
+fn placeRowMatchingTop(mut tiles: &mut HashMap<usize, Tile>, mut grid: &mut Vec<Vec<Tile>>, row:usize,  edgeNums: &HashMap<Edge, usize>) {
+    // let mut edgeNums = getEdgeNums(&tiles);
+    // for n in edgeNums{
+    //     print!("{}",n.1);
+    //     if *n.1 != 1 && *n.1 != 2{
+    //         println!("Alert!");
     //     }
     // }
-    println!("{:?}", grid);
 
-    // return WESDZXWEADEWW3E2SDZXC4E3WRSADZXC3WQE42ASDZxcEWRSDAXZC3WQ2EASDZXVec::<Vec<Tile>>::new();
+
+    println!("\nEdge nums of row: {}",row-1);
+    for tile in &grid[row-1] {
+        let edges = &getEdges(&tile);
+        
+        for e in edges {
+            print!("{}",edgeNums[e]);
+        }
+        print!("\n",);
+
+        // let edgeToMatch = &edges[2];
+        // // println!("here");
+        // let mut numMatches = 0;
+        // numMatches = edgeNums[&*edgeToMatch];
+        // print!("{} ", numMatches);
+    }
+    // // assert!(edgeNums[edgeToMatch] == 2);
+
+    // for i in 0 .. grid[row].len() {
+    //     println!("Matching row, col: {},{}",row,i);
+    //     placePieceMatchingTop(tiles, grid, row, i);
+    // }
 }
 
-fn placeRowInterior(mut tilePool: &mut HashMap<usize, Tile>, mut grid: &mut Vec<Vec<Tile>>) {  
-    println!("{}", grid[0].len());
 
-    for i in 1 .. grid[0].len()-1 {
-        // println!("{:?}", getEdges(&grid[0][i]));
-        // println!("{:?}", grid[0]);
-        println!("{}",i);
-        println!("{:?}",&grid[0][i-1]);
-        let edgeToMatch = &getEdges(&grid[0][i-1])[3];
-        let mut matchedNum = 0;
-        
-        println!("Pieces in tile pool: {}", tilePool.len());
-        for mut piece in &mut *tilePool{
-            let mut pieceEdges = getEdges(&piece.1);
-            
-            let edgeNum = 0;
-            for (j, mut edge) in pieceEdges.iter().enumerate() {
-                if *edge == *edgeToMatch{
-                    flipAndRotatePiece(&mut piece.1, 5-j, false, false);
-                    grid[0][i] = (*piece.1).clone();
-                    matchedNum = *piece.0;
-                    break;
-                }
-                else {
-                    let mut rev = edge.clone();
+fn placeTopRow(mut tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge, usize>, mut grid: &mut Vec<Vec<Tile>>) {
+    placeTopLeftCorner(&mut tiles, edgeNums, &mut grid);
+    placeRowInterior(&mut tiles, &mut grid, 0);
+    placePieceMatchingLeft(&mut tiles, &mut grid, 0, GRID_SIZE-1);
+}
 
-                    if rev == *edgeToMatch{
-                        rev.reverse();
-                        flipAndRotatePiece(&mut piece.1, 5-j, true, false);
-                        grid[0][i] = (*piece.1).clone();
-                        matchedNum = *piece.0;
-                        break;
-                    }
-                }
-            }
-
-            if matchedNum != 0 {
-                break;                
-            }
-        }
-        assert!(matchedNum != 0);
-        if matchedNum != 0 {
-            tilePool.remove(&matchedNum);
-        }
+fn placeRowInterior(mut tilePool: &mut HashMap<usize, Tile>, mut grid: &mut Vec<Vec<Tile>>, row: usize) {  
+    for i in 1 .. grid[row].len()-1 {
+        placePieceMatchingLeft(tilePool, grid, row, i);
     }
 }
 
-fn flipAndRotatePiece(tile: &mut Tile, mut numRotations: usize, flipV: bool, flipH: bool){
+fn placePieceMatchingTopAndLeft(mut tilePool: &mut HashMap<usize, Tile>, mut grid: &mut Vec<Vec<Tile>>, row: usize, col: usize){
+    assert!(!grid[row-1][col].is_empty());
+    let edgeToMatch = &getEdges(&grid[row-1][col])[2];
+
+    let mut edgeNums = getEdgeNums(&tilePool);
+    assert!(edgeNums[edgeToMatch] == 2);
+
+    let mut matchedNum = 0;
+
+    for mut piece in &mut *tilePool{
+        let mut pieceEdges = getEdges(&piece.1);
+        
+        for (j, mut edge) in pieceEdges.iter().enumerate() {
+            if *edge == *edgeToMatch{
+                println!("Matched no flip! {}",j);
+                grid[row][col] = flipAndRotatePiece(&mut piece.1, 4-j, false, false);
+                // grid[row][col] = (*piece.1).clone();
+                matchedNum = *piece.0;
+                break;
+            }
+            else {
+                let mut rev = edge.clone();
+                rev.reverse();
+
+                if rev == *edgeToMatch{
+                    println!("Matched flipped! {}",j);
+
+                    grid[row][col] = flipAndRotatePiece(&mut piece.1, 4-j, false, true);
+                    // grid[row][col] = (*piece.1).clone();
+                    matchedNum = *piece.0;
+                    break;
+                }
+            }
+        }
+        if matchedNum != 0 {
+            break;                
+        }
+    }
+
+    assert!(matchedNum != 0);
+    if matchedNum != 0 {
+        tilePool.remove(&matchedNum);
+    }
+    else {
+        println!("No match found");
+    }
+}
+
+fn placePieceMatchingLeft(mut tilePool: &mut HashMap<usize, Tile>, mut grid: &mut Vec<Vec<Tile>>, row: usize, col: usize){
+    let edgeNums = getEdgeNums(&tilePool);
+    
+    assert!(!grid[row][col-1].is_empty());
+    let edgeToMatch = &getEdges(&grid[row][col-1])[3];
+    let mut matchedNum = 0;
+
+    for mut piece in &mut *tilePool{
+        let mut pieceEdges = getEdges(&piece.1);
+
+        for (j, mut edge) in pieceEdges.iter().enumerate() {
+
+
+            if *edge == *edgeToMatch{
+                print!("no flip! Matched {}: ",j);
+                for e in &pieceEdges{
+                    print!("{}", edgeNums[e])
+                }
+                print!(" ===> ");
+
+                let flipped = flipAndRotatePiece(&piece.1, 5-j, false, false);
+
+                grid[row][col] = flipped;
+
+                for e in getEdges(&grid[row][col]) {
+                    print!("{}", edgeNums[&e])
+                }
+
+                if edgeNums[&getEdges(&grid[row][col])[2]] == 1 {
+                    let twiceFlipped = flipAndRotatePiece(&grid[row][col], 2, false, false);
+                    
+                    if grid[row][col] == twiceFlipped{
+                        print!(" xxx ");
+                    }
+
+                    grid[row][col] = twiceFlipped;
+
+
+                    print!(" ===> ");
+                    for e in getEdges(&grid[row][col]) {
+                        print!("{}", edgeNums[&e])
+                    }
+                }
+
+
+
+                print!("\n");
+                // grid[row][col] = (*piece.1).clone();
+                matchedNum += 1;//= *piece.0;
+                // matchedNum = *piece.0;
+                break;
+            }
+            else {
+                let mut rev = edge.clone();
+                rev.reverse();
+
+                if rev == *edgeToMatch{
+                    print!("flipped! Matched {}: ",j);
+                    for e in &pieceEdges{
+
+                        print!("{}", edgeNums[e])
+                    }
+                    print!(" ===> ");
+                    grid[row][col] = flipAndRotatePiece(&piece.1, 5-j, true, false);
+                    for e in getEdges(&grid[row][col]) {
+                        print!("{}", edgeNums[&e])
+                    }
+
+                    if edgeNums[&getEdges(&grid[row][col])[2]] == 1 {
+                        grid[row][col] = flipAndRotatePiece(&grid[row][col], 2, true, true);
+                        print!(" ===> ");
+                        for e in getEdges(&grid[row][col]) {
+                            print!("{}", edgeNums[&e])
+                        }
+                    }
+
+                    print!("\n");
+                    // grid[row][col] = (*piece.1).clone();
+                matchedNum += 1;//= *piece.0;
+                // matchedNum = *piece.0;
+                    break;
+                }
+            }
+        }
+        // if matchedNum != 0 {
+        //     break;                
+        // }
+    }
+    assert!(matchedNum != 0);
+    if matchedNum != 0 {
+        println!("matched {} tiles", matchedNum);
+        // tilePool.remove(&matchedNum);
+    }
+    else {
+        println!("No match found");
+    }
+}
+
+fn flipAndRotatePiece(tile: &Tile, mut numRotations: usize, flipV: bool, flipH: bool) -> Tile {
+    let mut retTile = tile.clone();
+
     while numRotations % 4 > 0{
-        *tile = rotate(&tile);
+        retTile = rotate(&retTile);
         numRotations -= 1;
     }
 
     if flipV{
-        *tile = flipVertical(tile);
+        retTile = flipVertical(&retTile);
     }
     if flipH{
-        *tile = flipHorizontal(tile);
+        retTile = flipHorizontal(&retTile);
     }
+    return retTile;
 }
 
-// initialized the grid with the top-left tile in place
-fn initializeGrid(mut tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge, usize>) -> Vec<Vec<Tile>>
+fn placeTopLeftCorner(mut tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge, usize>, mut grid: &mut Vec<Vec<Tile>>)
 {
-    let mut grid = generateSquareGrid();    // Already sized and indexable
-    // Let's place the top left tile
     let startNum = getFirstCorner(tiles, &edgeNums);
     let mut start = tiles[&startNum].clone();
     while edgeNums[ &getEdges(&start) [0] ] != 1
@@ -241,8 +343,8 @@ fn initializeGrid(mut tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge,
         start = rotate(&start);
     }
     grid[0][0] = start;
+    // println!("StartNum: {}",startNum);
     tiles.remove(&startNum);
-    return grid;
 }
 
 fn getFirstCorner(tiles: &mut HashMap<usize, Tile>, edgeNums: &HashMap<Edge, usize>) -> usize {
