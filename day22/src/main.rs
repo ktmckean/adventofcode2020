@@ -125,7 +125,8 @@ fn doPartTwo(){
     }
     assert!(p2.len() == p1.len());
 
-    let winner = playRecGame(&mut p1, &mut p2).1;
+    let mut gameNum = 0;
+    let winner = playRecGame(&mut p1, &mut p2, &mut gameNum).1;
 
     let mut score  = 0;
     let mut modifier = 1;
@@ -134,7 +135,7 @@ fn doPartTwo(){
         modifier += 1;
     }
 
-    assert!(17687 < score);
+    // assert!(17687 < score);
     assert!(32433 > score);
 
     println!("Part 2: {}",score);
@@ -170,11 +171,18 @@ fn doPartTwo(){
 //         }
 // }
 
-fn playRecGame(p1: &mut LinkedList<usize>, p2: &mut LinkedList<usize>) -> (bool, LinkedList<usize>) {
+fn playRecGame(p1: &mut LinkedList<usize>, p2: &mut LinkedList<usize>, gameNum: &mut usize) -> (bool, LinkedList<usize>) {
+    *gameNum += 1;
+    // let mut gamesCompleted;
+    // println!("=== Game {} ===", gameNum);
+
     let mut p1Decks = HashSet::<LinkedList<usize>>::new();
     let mut p2Decks = HashSet::<LinkedList<usize>>::new();
 
+    let mut roundNum = 0;
     while !p1.is_empty() && !p2.is_empty() {
+        roundNum += 1;
+        // println!("-- Round {} (Game {}) --",roundNum, gameNum);
         let repeat = !(p1Decks.insert(p1.clone()) && p2Decks.insert(p2.clone()));
         if repeat{
             return (true, p1.clone()); // p1 win
@@ -183,6 +191,8 @@ fn playRecGame(p1: &mut LinkedList<usize>, p2: &mut LinkedList<usize>) -> (bool,
         let v1 = p1.pop_front().unwrap();
         let v2 = p2.pop_front().unwrap();
 
+        //             // println!("Player 1's deck:");// 9, 2, 6, 3, 1");
+//             // println!("Player 2's deck:");// 5, 8, 4, 7, 10");
         // println!("Player 1 plays: {}",v1);
         // println!("Player 2 plays: {}",v2);
 
@@ -190,7 +200,8 @@ fn playRecGame(p1: &mut LinkedList<usize>, p2: &mut LinkedList<usize>) -> (bool,
         if v1 <= p1.len() && v2 <= p2.len() {
             let mut subDeck1 = createSubDeck(p1, v1);
             let mut subDeck2 = createSubDeck(p2, v2);
-            p1wonRound = playRecGame(&mut subDeck1, &mut subDeck2).0;
+            p1wonRound = playRecGame(&mut subDeck1, &mut subDeck2, gameNum).0;
+            *gameNum -= 1;
             // continue;
         }
         else{
@@ -217,11 +228,15 @@ fn playRecGame(p1: &mut LinkedList<usize>, p2: &mut LinkedList<usize>) -> (bool,
 fn createSubDeck(deck: &LinkedList<usize>, size: usize) -> LinkedList<usize>{
     let mut subDeck = LinkedList::<usize>::new();
 
+    // println!("subdeck size: {}", size);
+    // print!("Deck: ");
     for card in deck{
-        if subDeck.len() < size{
+        if subDeck.len() >= size{
             return subDeck;
         }
+        // print!("{}, ", card);
         subDeck.push_back(card.clone());
     }
+    // print!("\n");
     subDeck
 }
