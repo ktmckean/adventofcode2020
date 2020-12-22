@@ -66,23 +66,28 @@ fn flattenRules(rules: &Vec<Vec<Vec<usize>>>, ruleNum: usize, maxLen: usize) -> 
         return vec![vec![ruleNum]];
     }
     // let rules = rules[ruleNum].clone();
+    if isRecursiveRule(ruleNum){
+        // do something
+    }
 
     let mut flatRules = Vec::<Vec<usize>>::new();
     for set in &rules[ruleNum]{
         let mut flatSet = Vec::<Vec<usize>>::new();
         for r in set {
 
-            if !isRecursiveRule(*r) {
-                let mut flattenedOpts = flattenRules(rules, ruleNum, maxLen);
+        if isRecursiveRule(*r) {
+            assert!(false);
+            // we have a cycle, I think?
+        }
+            let mut flattenedOpts = flattenRules(rules, ruleNum, maxLen);
 
-                if flatSet.is_empty() {
-                    flatSet = flattenedOpts;
-                }
-                else {
-                    for fs in &mut flatSet {
-                        for fr in &mut flattenedOpts {
-                            fs.append(fr);
-                        }
+            if flatSet.is_empty() {
+                flatSet = flattenedOpts;
+            }
+            else {
+                for fs in &mut flatSet {
+                    for fr in &mut flattenedOpts {
+                        fs.append(fr);
                     }
                 }
             }
@@ -90,15 +95,33 @@ fn flattenRules(rules: &Vec<Vec<Vec<usize>>>, ruleNum: usize, maxLen: usize) -> 
         flatRules.append(&mut flatSet.clone());
         flatSet.clear();
     }
+    return flatRules;
+}
+
+fn expandRecursivePossibilities(rules: &Vec<Vec<Vec<usize>>>, ruleNum: usize, maxLen: usize) -> Vec<Vec<usize>>
+{
+    let mut sets = rules[ruleNum].clone();
+    for s in &rules[ruleNum]{
+        if !s.contains(&ruleNum){    // we are not recursive
+            continue;
+        }
+
+        let mut irecurse: usize = s.iter().position(|&x| x== ruleNum).unwrap();
+        let mut pre = &s[0 .. irecurse];
+        let mut post = &s[irecurse+1 ..];
+
+        let mut option: Vec<usize> = pre.to_vec().clone();
+        option.append(&mut (post.to_vec().clone()));
+        let base = option.clone();
+        let numTimesAdded = 1;
+        while &option.len() <= &maxLen{
+            sets.push(option.clone());
+            option.splice(pre.len()..pre.len(), base.iter().cloned());
+        }
 
 
-
-
-return flatRules;
-
-
-
-
+    }
+    return sets;
 }
 
 
@@ -135,7 +158,7 @@ fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
         let parts = line.split(": ").collect::<Vec<&str>>();
 
 
-        let ruleNum = parts[0].parse::<usize>().unwrap();
+        let ruleNum: usize = parts[0].parse::<usize>().unwrap();
         assert!(ruleNum < rulesVecSize);
 
         // If we are an end rule:
@@ -147,11 +170,6 @@ fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
         }
         // if we are not an end rule:
         else {
-            if parts[1].contains(parts[0]){
-                print!("Found recursive! {}",parts[0]);
-                scannedRecRules.push(ruleNum);
-            }
-
             let mut ruleSets = Vec::<Vec<usize>>::new();
 
             for ruleSet in parts[1].split("|").collect::<Vec<&str>>(){
@@ -160,7 +178,12 @@ fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
                 for rule in ruleSet.split(" ").collect::<Vec<&str>>(){
                     let parseRule = rule.parse::<usize>();
                     if !parseRule.is_err(){
-                        rules.push(parseRule.unwrap());                
+                        let pr = parseRule.unwrap();
+                        if pr == ruleNum {
+                            println!("Found recursive! {} contauns {}",parts[1],parts[0]);
+                            scannedRecRules.push(ruleNum);
+                        }
+                        rules.push(pr);                
                     }
                 }
                 ruleSets.push(rules)
@@ -194,6 +217,7 @@ fn set_END_RULES(newRules: &Vec<(usize, char)>)
 
 fn set_REC_RULES(recRules: &Vec<usize>)
 {
+    println!("setting rec: {:?}", recRules);
     unsafe{
         assert!(recRules.len() == REC_RULES.len());
 
