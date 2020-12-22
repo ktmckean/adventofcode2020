@@ -3,7 +3,7 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::vec::Vec;
-// use std::collections::HashSet;
+use std::collections::HashSet;
 // use std::collections::HashMap;
 // use id_tree::*;
 
@@ -36,6 +36,7 @@ fn main() {
 }
 
 static mut END_RULES: [(usize, char); 2] = [(0,'a'),(0,'a')];
+static mut REC_RULES: [usize; 2] = [0,0];
 
 
 
@@ -56,6 +57,74 @@ fn doPartOne(){
 
     println!("Part 1: {}", numMatches);
 }
+
+
+fn flattenRules(rules: &Vec<Vec<Vec<usize>>>, ruleNum: usize, maxLen: usize) -> Vec<Vec<usize>>
+{
+    // assert!(!isEndRule(ruleNum));
+    if isEndRule(&ruleNum){
+        return vec![vec![ruleNum]];
+    }
+    // let rules = rules[ruleNum].clone();
+    if isRecursiveRule(ruleNum){
+        // do something
+    }
+
+    let mut flatRules = Vec::<Vec<usize>>::new();
+    for set in &rules[ruleNum]{
+        let mut flatSet = Vec::<Vec<usize>>::new();
+        for r in set {
+
+        if isRecursiveRule(*r) {
+            assert!(false);
+            // we have a cycle, I think?
+        }
+            let mut flattenedOpts = flattenRules(rules, ruleNum, maxLen);
+
+            if flatSet.is_empty() {
+                flatSet = flattenedOpts;
+            }
+            else {
+                for fs in &mut flatSet {
+                    for fr in &mut flattenedOpts {
+                        fs.append(fr);
+                    }
+                }
+            }
+        }
+        flatRules.append(&mut flatSet.clone());
+        flatSet.clear();
+    }
+    return flatRules;
+}
+
+fn expandRecursivePossibilities(rules: &Vec<Vec<Vec<usize>>>, ruleNum: usize, maxLen: usize) -> Vec<Vec<usize>>
+{
+    let mut sets = rules[ruleNum].clone();
+    for s in &rules[ruleNum]{
+        if !s.contains(&ruleNum){    // we are not recursive
+            continue;
+        }
+
+        let mut irecurse: usize = s.iter().position(|&x| x== ruleNum).unwrap();
+        let mut pre = &s[0 .. irecurse];
+        let mut post = &s[irecurse+1 ..];
+
+        let mut option: Vec<usize> = pre.to_vec().clone();
+        option.append(&mut (post.to_vec().clone()));
+        let base = option.clone();
+        let numTimesAdded = 1;
+        while &option.len() <= &maxLen{
+            sets.push(option.clone());
+            option.splice(pre.len()..pre.len(), base.iter().cloned());
+        }
+
+
+    }
+    return sets;
+}
+
+
 
 fn countNumValidRules(v: &std::vec::Vec<String>, rulesVec: &Vec<Vec<Vec<usize>>>) -> usize{
     let numRules = rulesVec.len();
@@ -84,11 +153,12 @@ fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
     
     let numRules = getNumRules(&v);
     let mut scannedEndRules = Vec::<(usize, char)>::new();
+    let mut scannedRecRules = Vec::<usize>::new();
     for line in &v[.. numRules]{
         let parts = line.split(": ").collect::<Vec<&str>>();
 
 
-        let ruleNum = parts[0].parse::<usize>().unwrap();
+        let ruleNum: usize = parts[0].parse::<usize>().unwrap();
         assert!(ruleNum < rulesVecSize);
 
         // If we are an end rule:
@@ -108,7 +178,12 @@ fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
                 for rule in ruleSet.split(" ").collect::<Vec<&str>>(){
                     let parseRule = rule.parse::<usize>();
                     if !parseRule.is_err(){
-                        rules.push(parseRule.unwrap());                
+                        let pr = parseRule.unwrap();
+                        if pr == ruleNum {
+                            println!("Found recursive! {} contauns {}",parts[1],parts[0]);
+                            scannedRecRules.push(ruleNum);
+                        }
+                        rules.push(pr);                
                     }
                 }
                 ruleSets.push(rules)
@@ -117,8 +192,15 @@ fn scanAllRules(v: &std::vec::Vec<String>) -> Vec<Vec<Vec<usize>>>{
         }
     }
 
+    set_REC_RULES(&scannedRecRules);
     set_END_RULES(&scannedEndRules);
     return rulesVec
+}
+
+fn isRecursiveRule(num: usize) -> bool {
+    unsafe{
+    return REC_RULES.contains(&num);
+    }
 }
 
 fn set_END_RULES(newRules: &Vec<(usize, char)>)
@@ -129,6 +211,19 @@ fn set_END_RULES(newRules: &Vec<(usize, char)>)
         for (i,val) in newRules.iter().enumerate(){
             assert!(i<END_RULES.len());
             END_RULES[i] = *val;
+        }
+    }
+}
+
+fn set_REC_RULES(recRules: &Vec<usize>)
+{
+    println!("setting rec: {:?}", recRules);
+    unsafe{
+        assert!(recRules.len() == REC_RULES.len());
+
+        for (i,val) in recRules.iter().enumerate(){
+            assert!(i<REC_RULES.len());
+            REC_RULES[i] = *val;
         }
     }
 }

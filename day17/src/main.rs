@@ -109,7 +109,7 @@ fn doPartOne(){
         }
     }
 
-    // printGrid(&grid);
+    // printGrid3d(&grid);
     for _i in 0..numTurns{
         update3d(&mut grid);
     }
@@ -151,7 +151,7 @@ fn update3d(grid: &mut  Vec<Vec<Vec<i32>>>){
         }
     }
     *grid = updated.clone();
-    // printGrid(grid);
+    // printGrid3d(grid);
 }
 
 fn update(grid: &mut  Vec<Vec<Vec<Vec<i32>>>>){
@@ -181,22 +181,39 @@ fn update(grid: &mut  Vec<Vec<Vec<Vec<i32>>>>){
     // printGrid(grid);
 }
 
-// fn printGrid(grid: &Vec::<Vec<Vec<Vec<i32>>>>){
-//     // assert!(grid != updated);
+fn printGrid3d(grid: &Vec::<Vec<Vec<i32>>>){
+    // assert!(grid != updated);
     
-//     for yz in grid{
-//         // print!("[");
-//         for y in yz{
-//             for z in y{
-//                 print!("{:?}", z);
-//             }
-//             print!("]\n");
-//         }
-//         print!("]\n");
+    for yz in grid{
+        // print!("[");
+        for y in yz{
+            for z in y{
+                print!("{:?}", z);
+            }
+            print!("]\n");
+        }
+        print!("]\n");
 
-//     }
-//     println!("break");
-// }
+    }
+    println!("break");
+}
+
+fn printGrid(grid: &Vec::<Vec<Vec<Vec<i32>>>>){
+    // assert!(grid != updated);
+    
+    for yz in grid{
+        // print!("[");
+        for y in yz{
+            for z in y{
+                print!("{:?}", z);
+            }
+            print!("]\n");
+        }
+        print!("]\n");
+
+    }
+    println!("break");
+}
 
 fn getNumAdjacent3d(grid: &Vec<Vec<Vec<i32>>>, x: i64, y: i64, z: i64) -> i32{
     let mut lowx :i64 = -1;
